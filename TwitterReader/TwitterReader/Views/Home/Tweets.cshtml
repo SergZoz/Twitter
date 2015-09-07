@@ -1,0 +1,74 @@
+﻿@model PagedList.IPagedList<CommonDataModels.Tweet>
+@using PagedList.Mvc;
+
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Tweets";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Tweets</h2>
+@using (Html.BeginForm("Twitter", "Home", FormMethod.Get))
+{
+    <p>
+        Find by keywords: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string, new { style = "width:500px" })
+        <input type="submit" value="Search" />
+    </p>
+}
+<table class="table">
+
+
+    @for (int i = 0; i < Model.Count; i++ )
+    {
+        var item = Model[i];
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreatedAt)
+        </td>
+        <td class="message">
+            @Html.DisplayFor(modelItem => item.Message)
+        </td>
+    </tr>
+    }
+    
+</table>
+    <br />
+    <div>
+        Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+    </div>
+@Html.PagedListPager(Model, page => Url.Action("Twitter", 
+    new { page, currentFilter = ViewBag.CurrentFilter }))
+
+
+@section scripts {
+
+    <script src="~/Scripts/jquery.signalR-2.2.0.min.js"></script>
+        <script src="~/signalr/hubs"></script>
+    
+    <script>
+        $(function () {
+            
+            var hub = $.connection.twitterHub;
+            
+            hub.client.addNewMessageToPage = function () {
+                location.reload();
+            };
+
+            $.connection.hub.start().done(function () {
+            });
+
+            
+            
+        });
+        var str = $("#SearchString").val();
+        var words = str.split(" ");
+        for (i = 0; i < words.length; i++)
+        {
+            if(words[i].trim().length>0)
+                $(".message").highlight(words[i].trim());
+        }
+
+    </script>
+    }
+
